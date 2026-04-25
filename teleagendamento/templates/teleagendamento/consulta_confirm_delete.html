@@ -1,0 +1,27 @@
+{% extends "teleagendamento/base.html" %}
+
+{% block title %}Desmarcar consulta | Complexo Hospitalar UPE{% endblock %}
+{% block heading %}Desmarcar consulta{% endblock %}
+
+{% block content %}
+<section class="confirmation-layout">
+    <div class="panel confirmation-card">
+        <p class="eyebrow">Confirmação</p>
+        <h2>Deseja remover esta consulta?</h2>
+
+        <div class="appointment-summary">
+            <strong>{{ object.paciente }}</strong>
+            <span>{{ object.especialidade }}</span>
+            <span>{{ object.data|date:"d/m/Y" }} às {{ object.hora|time:"H:i" }}</span>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-actions">
+                <button class="button danger-button" type="submit">Sim, desmarcar</button>
+                <a href="{% url 'teleagendamento:consulta_list' %}">Manter consulta</a>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "teleagendamento/base.html" %}
+
+{% block title %}Agenda de Consultas | Complexo Hospitalar UPE{% endblock %}
+{% block heading %}Agenda do Complexo Hospitalar UPE{% endblock %}
+
+{% block content %}
+<section class="dashboard-grid">
+    <div class="panel panel-main">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Agendamentos</p>
+                <h2>Consultas marcadas</h2>
+            </div>
+            <span class="counter">{{ consultas|length }} consulta(s)</span>
+        </div>
+
+        {% if consultas %}
+            <div class="appointment-grid">
+                {% for consulta in consultas %}
+                    <article class="appointment-card">
+                        <div class="card-topline">
+                            <span class="ticket">#{{ consulta.id }}</span>
+                            <time datetime="{{ consulta.data|date:'Y-m-d' }}">
+                                {{ consulta.data|date:"d/m/Y" }} às {{ consulta.hora|time:"H:i" }}
+                            </time>
+                        </div>
+
+                        <h3>{{ consulta.paciente }}</h3>
+                        <p class="specialty">{{ consulta.especialidade.nome }}</p>
+                        <p class="doctor">{{ consulta.especialidade.medico }}</p>
+
+                        {% if consulta.observacoes %}
+                            <p class="notes">{{ consulta.observacoes }}</p>
+                        {% endif %}
+
+                        <div class="card-actions">
+                            <a href="{% url 'teleagendamento:consulta_update' consulta.pk %}">Alterar</a>
+                            <a class="danger-link" href="{% url 'teleagendamento:consulta_delete' consulta.pk %}">
+                                Desmarcar
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>Ainda não há consultas cadastradas.</p>
+                <a class="button" href="{% url 'teleagendamento:consulta_create' %}">
+                    Marcar a primeira consulta
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <aside class="panel schedule-panel">
+        <div class="section-heading compact">
+            <div>
+                <p class="eyebrow">Catálogo</p>
+                <h2>Especialidades e horários</h2>
+            </div>
+        </div>
+
+        <div class="specialty-list">
+            {% for especialidade in especialidades %}
+                <article class="specialty-card">
+                    <h3>{{ especialidade.nome }}</h3>
+                    <p>{{ especialidade.medico }}</p>
+                    <div class="time-pills">
+                        {% for horario in especialidade.horarios_ativos %}
+                            <span>{{ horario.hora|time:"H:i" }}</span>
+                        {% empty %}
+                            <span>Horário livre</span>
+                        {% endfor %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </aside>
+</section>
+{% endblock %}

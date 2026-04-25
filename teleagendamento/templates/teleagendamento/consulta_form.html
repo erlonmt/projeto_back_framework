@@ -1,0 +1,79 @@
+{% extends "teleagendamento/base.html" %}
+
+{% block title %}
+    {% if object %}Alterar consulta{% else %}Nova consulta{% endif %} | Complexo Hospitalar UPE
+{% endblock %}
+
+{% block heading %}
+    {% if object %}Alterar consulta{% else %}Marcar nova consulta{% endif %}
+{% endblock %}
+
+{% block content %}
+<section class="form-layout">
+    <div class="panel form-panel">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Atendimento</p>
+                <h2>{% if object %}Atualize os dados{% else %}Preencha os dados{% endif %}</h2>
+            </div>
+        </div>
+
+        <form method="post" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="form-errors">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% for field in form.visible_fields %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="field-error">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+
+            <div class="form-actions">
+                <button class="button" type="submit">
+                    {% if object %}Salvar alterações{% else %}Agendar consulta{% endif %}
+                </button>
+                <a href="{% url 'teleagendamento:consulta_list' %}">Cancelar</a>
+            </div>
+        </form>
+    </div>
+
+    <aside class="panel helper-panel">
+        <p class="eyebrow">Horários válidos</p>
+        <h2>Escolha um horário do catálogo</h2>
+        <p>
+            O sistema bloqueia automaticamente horários já ocupados na mesma
+            especialidade, data e hora.
+        </p>
+
+        <div class="specialty-list small">
+            {% for especialidade in especialidades %}
+                <article class="specialty-card">
+                    <h3>{{ especialidade.nome }}</h3>
+                    <p>{{ especialidade.medico }}</p>
+                    <div class="time-pills">
+                        {% for horario in especialidade.horarios_ativos %}
+                            <span>{{ horario.hora|time:"H:i" }}</span>
+                        {% empty %}
+                            <span>Sem grade fixa</span>
+                        {% endfor %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </aside>
+</section>
+{% endblock %}
