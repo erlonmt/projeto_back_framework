@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from django.utils.dateparse import parse_time
 
 from .models import Consulta, Especialidade, HorarioDisponivel
@@ -38,6 +39,7 @@ class ConsultaForm(forms.ModelForm):
         ).order_by("nome", "medico")
         self.fields["especialidade"].empty_label = "Selecione a especialidade"
         self.fields["hora"].choices = self.horarios_da_especialidade()
+        self.fields["data"].widget.attrs["min"] = timezone.localdate().isoformat()
 
         for field in self.fields.values():
             field.widget.attrs.setdefault("class", "form-control")

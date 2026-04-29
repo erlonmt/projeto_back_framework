@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 
 
 class Especialidade(models.Model):
@@ -104,6 +105,23 @@ class Consulta(models.Model):
 
         if self.paciente:
             self.paciente = self.paciente.strip().title()
+
+        if self.data:
+            hoje = timezone.localdate()
+            if self.data < hoje:
+                raise ValidationError(
+                    {"data": "Não é possível marcar consulta para uma data passada."}
+                )
+
+            horario_passado = (
+                self.hora
+                and self.data == hoje
+                and self.hora <= timezone.localtime().time()
+            )
+            if horario_passado:
+                raise ValidationError(
+                    {"hora": "Este horário já passou. Selecione um horário futuro."}
+                )
 
         if self.especialidade_id and self.hora:
             horarios = HorarioDisponivel.objects.filter(

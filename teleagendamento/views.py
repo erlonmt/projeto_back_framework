@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.db.models import Prefetch
 from django.http import JsonResponse
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views import View
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 
@@ -107,6 +108,13 @@ class HorariosDisponiveisView(View):
 
         data_consulta = self.data_consulta()
         if data_consulta:
+            hoje = timezone.localdate()
+            if data_consulta < hoje:
+                return JsonResponse({"horarios": []})
+
+            if data_consulta == hoje:
+                horarios = horarios.filter(hora__gt=timezone.localtime().time())
+
             consultas_ocupadas = Consulta.objects.filter(
                 especialidade_id=especialidade_id,
                 data=data_consulta,
