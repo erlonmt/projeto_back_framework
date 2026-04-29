@@ -18,7 +18,12 @@
             </div>
         </div>
 
-        <form method="post" novalidate>
+        <form
+            method="post"
+            novalidate
+            data-horarios-url="{% url 'teleagendamento:horarios_disponiveis' %}"
+            data-consulta-id="{% if object %}{{ object.pk }}{% endif %}"
+        >
             {% csrf_token %}
 
             {% if form.non_field_errors %}
@@ -76,4 +81,95 @@
         </div>
     </aside>
 </section>
+
+<script>
+    (() => {
+        const form = document.querySelector("[data-horarios-url]");
+        if (!form) {
+            return;
+        }
+
+        const especialidade = document.getElementById("id_especialidade");
+        const dataConsulta = document.getElementById("id_data");
+        const hora = document.getElementById("id_hora");
+
+        if (!especialidade || !hora) {
+            return;
+        }
+
+        const criarOpcao = (rotulo, valor = "") => {
+            const option = document.createElement("option");
+            option.value = valor;
+            option.textContent = rotulo;
+            return option;
+        };
+
+        const mostrarMensagem = (rotulo, desabilitado = true) => {
+            hora.replaceChildren(criarOpcao(rotulo));
+            hora.disabled = desabilitado;
+        };
+
+        const aplicarHorarios = (horarios, selecionado) => {
+            const textoInicial = horarios.length
+                ? "Selecione um horário"
+                : "Nenhum horário disponível";
+
+            hora.replaceChildren(criarOpcao(textoInicial));
+
+            horarios.forEach((horario) => {
+                hora.appendChild(criarOpcao(horario.rotulo, horario.valor));
+            });
+
+            if (selecionado && horarios.some((horario) => horario.valor === selecionado)) {
+                hora.value = selecionado;
+            } else {
+                hora.value = "";
+            }
+
+            hora.disabled = !horarios.length;
+        };
+
+        const carregarHorarios = async (preservarSelecionado = false) => {
+            if (!especialidade.value) {
+                mostrarMensagem("Selecione a especialidade primeiro");
+                return;
+            }
+
+            const selecionado = preservarSelecionado ? hora.value : "";
+            const parametros = new URLSearchParams({
+                especialidade: especialidade.value,
+            });
+
+            if (dataConsulta?.value) {
+                parametros.set("data", dataConsulta.value);
+            }
+
+            if (form.dataset.consultaId) {
+                parametros.set("consulta", form.dataset.consultaId);
+            }
+
+            mostrarMensagem("Carregando horários...");
+
+            try {
+                const resposta = await fetch(`${form.dataset.horariosUrl}?${parametros}`);
+                if (!resposta.ok) {
+                    throw new Error("Falha ao carregar horários.");
+                }
+
+                const payload = await resposta.json();
+                aplicarHorarios(payload.horarios || [], selecionado);
+            } catch (error) {
+                mostrarMensagem("Não foi possível carregar os horários");
+            }
+        };
+
+        especialidade.addEventListener("change", () => carregarHorarios(false));
+
+        if (dataConsulta) {
+            dataConsulta.addEventListener("change", () => carregarHorarios(true));
+        }
+
+        carregarHorarios(Boolean(hora.value));
+    })();
+</script>
 {% endblock %}

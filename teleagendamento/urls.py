@@ -6,6 +6,11 @@ app_name = "teleagendamento"
 
 urlpatterns = [
     path("", views.ConsultaListView.as_view(), name="consulta_list"),
+    path(
+        "horarios-disponiveis/",
+        views.HorariosDisponiveisView.as_view(),
+        name="horarios_disponiveis",
+    ),
     path("consultas/nova/", views.ConsultaCreateView.as_view(), name="consulta_create"),
     path(
         "consultas/<int:pk>/editar/",
