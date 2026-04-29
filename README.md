@@ -16,8 +16,11 @@ Também existe um alerta quando um paciente já possui outro agendamento, ajudan
 - Listagem completa da agenda.
 - Alteração e remarcação de consultas.
 - Cancelamento de consultas.
+- Seleção automática dos horários disponíveis conforme especialidade e médico(a).
 - Validação de horários disponíveis por especialidade.
 - Bloqueio de conflito para especialidade, data e horário já ocupados.
+- Bloqueio de consultas em datas passadas.
+- Bloqueio de horários que já passaram quando a consulta é para o dia atual.
 - Alerta para paciente com consulta já existente.
 - Cadastro e edição de especialidades pelo Django Admin.
 - Cadastro e edição de horários disponíveis pelo Django Admin.
@@ -90,14 +93,20 @@ complexo_hospitalar_framework_upe/
 
 ## Como Executar Localmente
 
-Clone o repositório:
+### Pré-requisitos
+
+- Python 3.12 ou superior.
+- Git instalado.
+- Acesso a um terminal.
+
+### Linux
 
 ```bash
 git clone <url-do-repositorio>
 cd complexo_hospitalar_framework_upe
 ```
 
-Crie e ative um ambiente virtual:
+Crie e ative o ambiente virtual:
 
 ```bash
 python3 -m venv venv
@@ -107,19 +116,73 @@ source venv/bin/activate
 Instale as dependências:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 Execute as migrações:
 
 ```bash
-python3 manage.py migrate
+python manage.py migrate
 ```
 
 Inicie o servidor:
 
 ```bash
-python3 manage.py runserver
+python manage.py runserver
+```
+
+Acesse no navegador:
+
+```text
+http://127.0.0.1:8000/
+```
+
+### Windows
+
+No PowerShell, clone o repositório e entre na pasta do projeto:
+
+```powershell
+git clone <url-do-repositorio>
+cd complexo_hospitalar_framework_upe
+```
+
+Crie e ative o ambiente virtual:
+
+```powershell
+py -3.12 -m venv venv
+.\venv\Scripts\Activate.ps1
+```
+
+Se o PowerShell bloquear a ativação do ambiente virtual, execute uma vez:
+
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+```
+
+Depois tente ativar novamente:
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+Instale as dependências:
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Execute as migrações:
+
+```powershell
+python manage.py migrate
+```
+
+Inicie o servidor:
+
+```powershell
+python manage.py runserver
 ```
 
 Acesse no navegador:
@@ -148,6 +211,14 @@ export DJANGO_DEBUG="False"
 export DJANGO_ALLOWED_HOSTS="seudominio.com,www.seudominio.com"
 ```
 
+Exemplo de configuração em ambiente Windows PowerShell:
+
+```powershell
+$env:DJANGO_SECRET_KEY="sua-chave-secreta"
+$env:DJANGO_DEBUG="False"
+$env:DJANGO_ALLOWED_HOSTS="seudominio.com,www.seudominio.com"
+```
+
 ## Painel Administrativo
 
 O Django Admin está disponível em:
@@ -159,7 +230,7 @@ http://127.0.0.1:8000/admin/
 Para criar um usuário administrador:
 
 ```bash
-python3 manage.py createsuperuser
+python manage.py createsuperuser
 ```
 
 No painel administrativo é possível gerenciar:
@@ -176,7 +247,7 @@ As especialidades e horários padrão são criados automaticamente pela migraç�
 Se precisar recarregar esses dados manualmente, execute:
 
 ```bash
-python3 manage.py carregar_especialidades
+python manage.py carregar_especialidades
 ```
 
 O comando é seguro para executar mais de uma vez, pois usa criação idempotente e evita duplicidade.
@@ -186,7 +257,7 @@ O comando é seguro para executar mais de uma vez, pois usa criação idempotent
 Para executar a suíte de testes:
 
 ```bash
-python3 manage.py test
+python manage.py test
 ```
 
 Os testes cobrem:
@@ -194,6 +265,9 @@ Os testes cobrem:
 - Normalização do nome do paciente.
 - Bloqueio de horário já ocupado.
 - Bloqueio de horário fora do catálogo da especialidade.
+- Bloqueio de consulta em data passada.
+- Bloqueio de horário já vencido no dia atual.
+- Filtro de horários disponíveis para remover horários ocupados e horários vencidos.
 - Atualização de consulta mantendo o próprio horário.
 - Renderização da página inicial.
 - Criação de consulta pelo formulário web.
@@ -213,6 +287,9 @@ O sistema valida automaticamente:
 - O nome do paciente não pode ser vazio.
 - O horário precisa pertencer à grade da especialidade, quando houver grade cadastrada.
 - Uma especialidade não pode ter duas consultas na mesma data e hora.
+- A data da consulta não pode estar no passado.
+- Se a consulta for para hoje, o horário escolhido precisa ser maior que o horário atual.
+- O formulário exibe apenas os horários disponíveis para a especialidade e médico(a) selecionados.
 - Ao atualizar uma consulta, o próprio horário atual continua permitido.
 - Se o paciente já tiver outro agendamento, o sistema exibe um aviso.
 
@@ -221,31 +298,31 @@ O sistema valida automaticamente:
 Criar migrações após alterar modelos:
 
 ```bash
-python3 manage.py makemigrations
+python manage.py makemigrations
 ```
 
 Aplicar migrações:
 
 ```bash
-python3 manage.py migrate
+python manage.py migrate
 ```
 
 Verificar problemas de configuração:
 
 ```bash
-python3 manage.py check
+python manage.py check
 ```
 
 Criar administrador:
 
 ```bash
-python3 manage.py createsuperuser
+python manage.py createsuperuser
 ```
 
 Executar testes:
 
 ```bash
-python3 manage.py test
+python manage.py test
 ```
 
 ## Próximas Melhorias
